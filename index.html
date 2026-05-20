@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="stylesheet" href="./style.css" />
   <!-- online-only:start -->
-  <script async data-id="101506304" src="//static.getclicky.com/js"></script>
+  <script async data-id="101506306" src="//static.getclicky.com/js"></script>
   <!-- online-only:end -->
   <!-- igazolo hash-ek:
    2e86b985e08893bdb44bfa71cb674281ed2aa109fe59824824d68be7b611b9ca
@@ -76,9 +76,12 @@
             btn.addEventListener("click", function () { ov.hidden = true; });
           }
           // Sharing the address bar URL only makes sense over http(s)://;
-          // a file:// URL won't open on anyone else's machine.
-          var share = document.getElementById("shareLink");
-          if (share) share.hidden = false;
+          // a file:// URL won't open on anyone else's machine. The button
+          // lives further down the document, so wait for DOM ready.
+          document.addEventListener("DOMContentLoaded", function () {
+            var share = document.getElementById("shareLink");
+            if (share) share.hidden = false;
+          });
         }
       })();
     </script>
