@@ -1,0 +1,301 @@
+<!doctype html>
+<html lang="hu">
+<head>
+  <meta charset="utf-8" />
+  <title>Államkincstár költségvetési támogatások</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="./style.css" />
+  <!-- online-only:start -->
+  <script async data-id="101506304" src="//static.getclicky.com/js"></script>
+  <!-- online-only:end -->
+  <!-- igazolo hash-ek:
+   2e86b985e08893bdb44bfa71cb674281ed2aa109fe59824824d68be7b611b9ca
+   31de8eb00fa2f4f075f091f8a18e1026cf8c9ae2aeac592e0486671103ba2835
+  -->
+</head>
+<body>
+  <main>
+    <header class="page-header">
+      <h1>Államkincstár költségvetési támogatások</h1>
+      <div id="status" class="status" hidden></div>
+    </header>
+
+    <div id="localLoader" class="local-loader" hidden>
+      <div class="local-loader-inner">
+        <p>Szia, jó böngészést. Az adatok helyességét ellnőrizd az Államkincstár weboldalán is.</p>
+        <p>Visszajelzés itt: kifizetes@proton.me</p>
+        <p>
+          A dashboard helyi (<code>file://</code>) módban fut. A böngésző biztonsági okból
+          nem tölti be magától a <code>data/</code> mappa parquet fájljait, így kérlek
+          válaszd ki azokat:
+        </p>
+        <button id="localLoaderButton" type="button">Adatmappa kiválasztása…</button>
+        <p id="localLoaderMessage" class="local-loader-message"></p>
+        <p class="local-loader-hint">
+          Tipp: <code>python serve.py 8000</code> futtatásával nem szükséges külön kiválasztani.
+        </p>
+        <p class="local-loader-hint">
+          <span id="localLoaderHashes"></span>
+        </p>
+      </div>
+    </div>
+
+    <div id="welcomeOverlay" class="local-loader" hidden>
+      <div class="local-loader-inner">
+        <p>Szia, jó böngészést. Az adatok helyességét ellnőrizd az Államkincstár weboldalán is.</p>
+        <p>Visszajelzés itt: kifizetes@proton.me</p>
+        <button id="welcomeOverlayButton" type="button">Tovább</button>
+        <p class="local-loader-hint">
+          <span id="welcomeOverlayHashes"></span>
+        </p>
+      </div>
+    </div>
+
+    <script>
+      // Verification hashes for the published data files. Kept in one
+      // place so both popups (offline picker and online welcome) render
+      // them identically.
+      (function () {
+        var HASHES = [
+          "2e86b985e08893bdb44bfa71cb674281ed2aa109fe59824824d68be7b611b9ca",
+          "31de8eb00fa2f4f075f091f8a18e1026cf8c9ae2aeac592e0486671103ba2835",
+        ];
+        var html = HASHES.join("<br>");
+        var a = document.getElementById("localLoaderHashes");
+        var b = document.getElementById("welcomeOverlayHashes");
+        if (a) a.innerHTML = html;
+        if (b) b.innerHTML = html;
+
+        // Show the welcome overlay only on http(s):// — the offline
+        // (file://) path already shows #localLoader with the picker.
+        if (location.protocol !== "file:") {
+          var ov = document.getElementById("welcomeOverlay");
+          var btn = document.getElementById("welcomeOverlayButton");
+          if (ov && btn) {
+            ov.hidden = false;
+            btn.addEventListener("click", function () { ov.hidden = true; });
+          }
+          // Sharing the address bar URL only makes sense over http(s)://;
+          // a file:// URL won't open on anyone else's machine.
+          var share = document.getElementById("shareLink");
+          if (share) share.hidden = false;
+        }
+      })();
+    </script>
+
+    <section class="filters">
+      <label class="search">
+        Keresés (igénylő vagy cél)
+        <input id="search" type="search" placeholder='pl. Máltai oktatás  -sport  "teljes kifejezés"' autocomplete="off" title='Több szó = ÉS. Mínusz előtag (-szó) kizár. Idézőjelek = pontos kifejezés. Pl: oktatás -sport "felsőfokú képzés"' />
+      </label>
+
+      <label>
+        Megye
+        <select id="megye"><option value="">Összes</option></select>
+      </label>
+
+      <label>
+        Státusz
+        <select id="statusz"><option value="">Összes</option></select>
+      </label>
+
+      <label>
+        Lezárás oka
+        <select id="lezaras"><option value="">Összes</option></select>
+      </label>
+
+      <label>
+        Pályázat
+        <select id="palyazat"><option value="">Összes</option></select>
+      </label>
+
+      <label>
+        Típus
+        <select id="tipus"><option value="">Összes</option></select>
+      </label>
+
+      <label>
+        Konstrukció
+        <input id="konstrukcio" list="konstrukcioList" placeholder="írj a kereséshez" autocomplete="off" />
+        <datalist id="konstrukcioList"></datalist>
+      </label>
+
+      <label>
+        Döntésre jogosult
+        <input id="dontesre" list="dontesreList" placeholder="írj a kereséshez" autocomplete="off" />
+        <datalist id="dontesreList"></datalist>
+      </label>
+
+      <label>
+        Igénylő (pontos)
+        <input id="igenyloEq" type="text" placeholder="–" autocomplete="off" />
+      </label>
+
+      <label>
+        Cél (pontos)
+        <input id="celEq" type="text" placeholder="–" autocomplete="off" />
+      </label>
+
+      <label>
+        Igénylés dátuma ettől
+        <input id="dateFrom" type="date" />
+      </label>
+
+      <label>
+        Igénylés dátuma eddig
+        <input id="dateTo" type="date" />
+      </label>
+
+      <label>
+        Döntés dátuma ettől
+        <input id="dontesDateFrom" type="date" />
+      </label>
+
+      <label>
+        Döntés dátuma eddig
+        <input id="dontesDateTo" type="date" />
+      </label>
+
+      <label>
+        Min. igényelt (Ft)
+        <input id="igenyeltMin" type="number" min="0" step="1" placeholder="–" />
+      </label>
+
+      <label>
+        Max. igényelt (Ft)
+        <input id="igenyeltMax" type="number" min="0" step="1" placeholder="–" />
+      </label>
+
+      <label>
+        Min. odaítélt (Ft)
+        <input id="amountMin" type="number" min="0" step="1" placeholder="–" />
+      </label>
+
+      <label>
+        Max. odaítélt (Ft)
+        <input id="amountMax" type="number" min="0" step="1" placeholder="–" />
+      </label>
+
+      <div class="filter-actions">
+        <button id="reset" type="button">Szűrők törlése</button>
+      </div>
+    </section>
+
+    <section class="cards">
+      <div class="card">
+        <span class="label">Találatok</span>
+        <span id="count" class="value">–</span>
+      </div>
+
+      <div class="card">
+        <span class="label">Igényelt támogatás</span>
+        <span id="sumRequested" class="value">–</span>
+      </div>
+
+      <div class="card">
+        <span class="label">Odaítélt támogatás</span>
+        <span id="sumAwarded" class="value">–</span>
+      </div>
+
+      <div class="card">
+        <span class="label">Igényelt (2025 Ft)</span>
+        <span id="sumRequestedReal" class="value real">–</span>
+      </div>
+
+      <div class="card">
+        <span class="label">Odaítélt (2025 Ft)</span>
+        <span id="sumAwardedReal" class="value real">–</span>
+      </div>
+
+      <div class="card">
+        <span class="label">Döntés dátuma</span>
+        <span id="dontesRange" class="value">–</span>
+      </div>
+
+      <button id="shareLink" type="button" class="share-button"
+              title="A jelenlegi szűrőket tartalmazó link másolása" hidden>
+        Találatok megosztása
+      </button>
+    </section>
+
+    <section>
+      <div class="results-toolbar">
+        <h2>Eredmények</h2>
+        <div class="results-controls">
+          <label class="inline">
+            Oldalméret
+            <select id="pageSize">
+              <option value="50">50</option>
+              <option value="100" selected>100</option>
+              <option value="500">500</option>
+              <option value="1000">1000</option>
+            </select>
+          </label>
+          <button id="exportCsv" type="button" title="A jelenlegi szűrt nézet mentése CSV-be">CSV export</button>
+          <button id="prevPage" type="button">‹ Előző</button>
+          <span id="pageInfo" class="page-info">–</span>
+          <button id="nextPage" type="button">Következő ›</button>
+        </div>
+      </div>
+
+      <div class="table-scroll">
+        <table id="results">
+          <colgroup>
+            <col data-col="igenylo"        style="width: 180px" />
+            <col data-col="cel"            style="width: 380px" />
+            <col data-col="konstrukcio"    style="width: 200px" />
+            <col data-col="palyazat"       style="width: 130px" />
+            <col data-col="dontesre"       style="width: 160px" />
+            <col data-col="igenyelt"       style="width: 110px" />
+            <col data-col="odaitelt"       style="width: 110px" />
+            <col data-col="igenyelt_real"  style="width: 130px" />
+            <col data-col="odaitelt_real"  style="width: 130px" />
+            <col data-col="szazalek"       style="width: 60px" />
+            <col data-col="igenyles_datuma" style="width: 110px" />
+            <col data-col="dontes_datuma"  style="width: 110px" />
+            <col data-col="kezdodatum"     style="width: 110px" />
+            <col data-col="vegdatum"       style="width: 110px" />
+            <col data-col="statusz"        style="width: 130px" />
+            <col data-col="megye"          style="width: 120px" />
+            <col data-col="tipus"          style="width: 120px" />
+            <col data-col="lezaras"        style="width: 160px" />
+            <col data-col="azonosito"      style="width: 140px" />
+          </colgroup>
+          <thead>
+            <tr>
+              <th data-sort="igenylo">Igénylő</th>
+              <th>Cél</th>
+              <th data-sort="konstrukcio">Konstrukció</th>
+              <th data-sort="palyazat">Pályázat</th>
+              <th data-sort="dontesre">Döntésre jogosult</th>
+              <th data-sort="igenyelt" class="num">Igényelt</th>
+              <th data-sort="odaitelt" class="num">Odaítélt</th>
+              <th data-sort="igenyelt_real" class="num" title="Igényelt összeg 2025-ös Ft-ban, KSH éves inflációval">Igényelt (2025 Ft)</th>
+              <th data-sort="odaitelt_real" class="num" title="Odaítélt összeg 2025-ös Ft-ban, KSH éves inflációval">Odaítélt (2025 Ft)</th>
+              <th data-sort="szazalek" class="num">%</th>
+              <th data-sort="igenyles_datuma">Igénylés dátuma</th>
+              <th data-sort="dontes_datuma">Döntés dátuma</th>
+              <th data-sort="kezdodatum">Kezdő dátum</th>
+              <th data-sort="vegdatum">Vég dátum</th>
+              <th data-sort="statusz">Státusz</th>
+              <th data-sort="megye">Megye</th>
+              <th data-sort="tipus">Típus</th>
+              <th data-sort="lezaras">Lezárás oka</th>
+              <th data-sort="azonosito">Azonosító</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <div class="results-controls pager-bottom">
+        <button id="prevPageBottom" type="button">‹ Előző</button>
+        <span id="pageInfoBottom" class="page-info">–</span>
+        <button id="nextPageBottom" type="button">Következő ›</button>
+      </div>
+    </section>
+  </main>
+
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
